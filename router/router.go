@@ -12,17 +12,21 @@ import (
 
 type Handler struct{
 	UserChannel *chan *domain.User
+	TransactionChannel *chan *domain.NewTransactionRequest
+
 	UserDB *[]*domain.User	
 }
 
-func New(userDb *[]*domain.User, userChannel *chan *domain.User){
+func New(userDb *[]*domain.User, userChannel *chan *domain.User, transactionChannel *chan *domain.NewTransactionRequest){
 	h := Handler{
 		UserChannel: userChannel,
+		TransactionChannel: transactionChannel,
 		UserDB: userDb,
 	}
 
 
-	http.HandleFunc("/api/v1/user", h.handleCreateUser)
+	http.HandleFunc("/api/v1/users", h.handleCreateUser)
+	http.HandleFunc("/api/v1/transactions", h.handleTransaction)
 }
 
 
@@ -52,4 +56,34 @@ func (h *Handler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println(string(userDb), "\n")
 
 	w.Write([]byte(user))
+}
+
+func (h *Handler) handleTransaction(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		util.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		util.RespondWithError(w, http.StatusBadRequest, "Error reading request body")
+		return
+	}
+
+	var requestData domain.NewTransactionRequest
+	err = json.Unmarshal(body, &requestData)
+	if err != nil {
+		util.RespondWithError(w, http.StatusBadRequest, "Invalid JSON format")
+		return
+	}
+
+	err = repository.NewTransaction(&requestData, h.TransactionChannel, h.UserDB)
+	if err != nil {
+		util.RespondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+
+	w.Write([]byte("OK\r\n"))
 }

@@ -9,5 +9,13 @@ type User struct{
 
 
 type CreateUserRequest struct {
-	Name string `validator:"required"`
+	Name string `json:"name" validator:"required"`
+}
+
+
+
+type NewTransactionRequest struct {
+	SenderId int64 `json:"senderId" validator:"required"`
+	ReceiverId int64 `json:"receiverId" validator:"required"`
+	Amount float64 `json:"amount" validator:"required"`
 }
