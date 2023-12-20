@@ -7,7 +7,6 @@ import (
 	"go-parallel-transactions/util"
 	"io/ioutil"
 	"net/http"
-	// "fmt"
 )
 
 type Handler struct{
@@ -53,10 +52,9 @@ func (h *Handler) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	newUser := repository.CreateUser(&requestData, h.UserChannel, h.UserDB)
 	user, _ := json.Marshal(newUser)
-	// userDb, _ := json.Marshal(h.UserDB)
-	// fmt.Println(string(userDb), "\n")
 
-	w.Write([]byte(user))
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(user)
 }
 
 func (h *Handler) handleTransaction(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +83,7 @@ func (h *Handler) handleTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
+	// w.WriteHeader(http.StatusOK, "application/json")
 	w.Write([]byte("OK\r\n"))
 }
 
@@ -97,6 +95,6 @@ func (h *Handler) handleFetchUsers(w http.ResponseWriter, r *http.Request) {
 
 
 	users, _ := json.Marshal(h.UserDB)
-
-	w.Write([]byte(users))
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(users)
 }
