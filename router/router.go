@@ -26,6 +26,7 @@ func New(userDb *[]*domain.User, userChannel *chan *domain.User, transactionChan
 
 
 	http.HandleFunc("/api/v1/users", h.handleCreateUser)
+	http.HandleFunc("/api/v1/users/all", h.handleFetchUsers)
 	http.HandleFunc("/api/v1/transactions", h.handleTransaction)
 }
 
@@ -86,4 +87,16 @@ func (h *Handler) handleTransaction(w http.ResponseWriter, r *http.Request) {
 
 
 	w.Write([]byte("OK\r\n"))
+}
+
+func (h *Handler) handleFetchUsers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		util.RespondWithError(w, http.StatusMethodNotAllowed, "Method not allowed")
+		return
+	}
+
+
+	users, _ := json.Marshal(h.UserDB)
+
+	w.Write([]byte(users))
 }
